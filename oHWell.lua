@@ -14,6 +14,9 @@ local button = CreateFrame("Button", "form", UIParent, "SecureActionButtonTempla
 	button:SetPoint(unpack(point))
 	button:SetWidth(100)
 	button:SetHeight(40)
+	button:SetClampedToScreen(true)
+	button:SetMovable(true)
+	button:SetUserPlaced(true)
 	button:RegisterForClicks("AnyUp", "AnyDown")
 	button:SetText(SLASH_CANCELFORM1:gsub("/(.*)","%1"))
 	button:SetNormalFontObject("GameFontNormal")
@@ -40,12 +43,57 @@ local button = CreateFrame("Button", "form", UIParent, "SecureActionButtonTempla
 	
 	button:Hide()
 	
+local function anchor_Tooltip(self)
+	GameTooltip:SetOwner(self, "ANCHOR_TOP")
+	GameTooltip:AddDoubleLine(DRAG_MODEL, "Alt + |TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:13:11:0:-1:512:512:12:66:333:411|t", 0, 1, 0.5, 1, 1, 1)
+	GameTooltip:Show()
+end
+
+-- create a drag frame
+local anchor = CreateFrame("Frame", nil, form)
+	anchor:SetPoint("TOPLEFT", "form", -40, 0)
+	anchor:SetSize(40, 40)
+	anchor:EnableMouse(true)
+	anchor:SetFrameStrata("BACKGROUND")
+	--anchor:SetClampedToScreen(true)
+	--anchor:SetMovable(true)
+	--anchor:SetUserPlaced(true)
+	anchor:RegisterForDrag("RightButton")
+	anchor:SetScript("OnDragStart", function(self, button)
+		if IsAltKeyDown() then
+			local frame = self:GetParent()
+			frame:StartMoving()
+		end
+	end)
+	anchor:SetScript("OnDragStop", function(self, button)
+		local frame = self:GetParent()
+		frame:StopMovingOrSizing()
+	end)
+	-- Show tooltip for drag
+	anchor:SetScript("OnEnter", function(self)
+		anchor_Tooltip(self)
+	end)
+	anchor:SetScript("OnLeave", function(self)
+		GameTooltip:Hide()
+	end)
+	-- Reset / 重置
+	SlashCmdList["RESETCF"] = function() 
+		--button:SetUserPlaced(false)
+		button:ClearAllPoints()
+	end
+	SLASH_RESETCF1 = "/rcf"
+
 local fb = CreateFrame("Frame")
 function fb:OnEvent(event)
 	if btn ~= true then return end
+	
 	local class = select(2, UnitClass("player"))
+	local instanceType = select(2, IsInInstance())
+	
 	if not (class == "DRUID" or class == "SHAMAN" or class == "PRIEST") then return end
-	if GetShapeshiftForm() > 0 then
+	--if instanceType ~= "none" then return end	
+	
+	if GetShapeshiftForm() > 0 and instanceType == "none" then
 		button:Show()
 		--SetBindingClick("TAB", "form")
 	else
@@ -53,6 +101,8 @@ function fb:OnEvent(event)
 	end
 end
 
+fb:RegisterEvent("INSTANCE_GROUP_SIZE_CHANGED")
+fb:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 fb:RegisterEvent("PLAYER_ENTERING_WORLD")
 fb:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
 fb:SetScript("OnEvent", fb.OnEvent)
