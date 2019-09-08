@@ -91,7 +91,6 @@ function fb:OnEvent(event)
 	local instanceType = select(2, IsInInstance())
 	
 	if not (class == "DRUID" or class == "SHAMAN" or class == "PRIEST") then return end
-	--if instanceType ~= "none" then return end	
 	
 	if GetShapeshiftForm() > 0 and instanceType == "none" then
 		button:Show()
@@ -107,11 +106,18 @@ fb:RegisterEvent("PLAYER_ENTERING_WORLD")
 fb:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
 fb:SetScript("OnEvent", fb.OnEvent)
 
+local errList = {
+	[SPELL_FAILED_NOT_MOUNTED] = true,
+	[ERR_ATTACK_MOUNTED] = true,
+	[ERR_TAXIPLAYERALREADYMOUNTED] = true,	
+}
+
 local f = CreateFrame("Frame")
 function f:OnEvent(event, key, state)
 	if state == SPELL_FAILED_NOT_STANDING then
 		DoEmote("stand")
-	elseif state == SPELL_FAILED_NOT_MOUNTED or state == ERR_ATTACK_MOUNTED then
+	--elseif state == SPELL_FAILED_NOT_MOUNTED or state == ERR_ATTACK_MOUNTED then
+	elseif errList[state] then
 		Dismount()	
 	end
 end
@@ -120,17 +126,17 @@ f:RegisterEvent("UI_ERROR_MESSAGE")
 f:SetScript("OnEvent", f.OnEvent)
 
 --[[
-local list = {
-	["SPELL_FAILED_NOT_SHAPESHIFT"]					= true,
-	["SPELL_FAILED_NO_ITEMS_WHILE_SHAPESHIFTED"]	= true,
-	["SPELL_NOT_SHAPESHIFTED"]						= true,
-	["SPELL_NOT_SHAPESHIFTED_NOSPACE"]				= true,
-	["ERR_CANT_INTERACT_SHAPESHIFTED"]				= true,
-	["ERR_NOT_WHILE_SHAPESHIFTED"]					= true,
-	["ERR_NO_ITEMS_WHILE_SHAPESHIFTED"]				= true,
-	["ERR_TAXIPLAYERSHAPESHIFTED"]					= true,
-	["ERR_MOUNT_SHAPESHIFTED"]						= true,
-	["ERR_EMBLEMERROR_NOTABARDGEOSET"]				= true,
-
-}
+	SPELL_FAILED_NOT_MOUNTED,
+	ERR_ATTACK_MOUNTED,
+	ERR_TAXIPLAYERALREADYMOUNTED,
+	SPELL_FAILED_NOT_SHAPESHIFT,
+	SPELL_FAILED_NO_ITEMS_WHILE_SHAPESHIFTED,
+	SPELL_NOT_SHAPESHIFTED,
+	SPELL_NOT_SHAPESHIFTED_NOSPACE,
+	ERR_CANT_INTERACT_SHAPESHIFTED,
+	ERR_NOT_WHILE_SHAPESHIFTED,
+	ERR_NO_ITEMS_WHILE_SHAPESHIFTED,
+	ERR_TAXIPLAYERSHAPESHIFTED,
+	ERR_MOUNT_SHAPESHIFTED
+	ERR_EMBLEMERROR_NOTABARDGEOSET
 ]]--
